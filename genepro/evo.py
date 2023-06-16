@@ -231,6 +231,7 @@ class Evolution:
     # set the start time
     self.results = []
     self.start_time = time.time()
+    self.results = []
 
     self._initialize_population()
 
