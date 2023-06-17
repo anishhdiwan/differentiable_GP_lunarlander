@@ -12,6 +12,7 @@ from joblib.parallel import Parallel, delayed
 from genepro.node import Node
 from genepro.variation import *
 from genepro.selection import tournament_selection
+from symbolic_dqn.inference import
 
 class Evolution:
   """

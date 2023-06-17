@@ -10,7 +10,6 @@ class ExpressionMultiTree:
 	'''
 	The ExpressionMultiTree class is used to instantiate symbolic equation objects. These objects act as states in the first MDP. 
 
-
 	- Considering an complete binary tree (one where all non-terminal nodes have exactly 2 children) of empty nodes as the initial state. 
 	This avoids restricting the scope of the expressions that can be generated. 
 
@@ -37,6 +36,7 @@ class ExpressionMultiTree:
 
 		self.multitree_preorder_travs = self.get_multitree_preorder_travs(self.multitree)
 		# self.preorder_trav = [None for _ in range(2**tree_depth - 1)] 
+		# print(self.multitree_preorder_travs)
 
 		self.node_vector_dim = node_vector_dim
 
@@ -44,7 +44,6 @@ class ExpressionMultiTree:
 	def update(self, actions, node_instances):
 		# Update multitree and the pre-order traversal with the performed actions (addition of an operator to each individual tree)
 		assert len(actions) == self.multitree.n_trees, "The number of actions must be the same as the number of trees in the multitree"
-
 		for i in range(len(actions)):
 			if not self.tree_full[i]:
 				action = actions[i]
@@ -55,8 +54,7 @@ class ExpressionMultiTree:
 
 		
 		self.multitree_preorder_travs = self.get_multitree_preorder_travs(self.multitree)
-
-		return self.tree_full
+		return self.tree_full #TODO: find out why this is returning all True even when trees are not full
 
 	def evaluate(self, main_env_state):
 		# Evaluate the current multitree expression with the main_env's state to get action values for the main_env
@@ -71,16 +69,12 @@ class ExpressionMultiTree:
 			vectorised_trav = np.zeros((2**self.tree_depth - 1, self.node_vector_dim))
 			for i in range(len(trav)):
 				operator = trav[i]
-				#print("converting operator:",operator)
 				if operator is None: #convert Nonetypes to zero
 					operator = "0.0"
-				if operator.replace(".", "").isnumeric():
-
+				if operator.replace(".", "").replace("-","").isnumeric():
 					vectorised_trav[i] = np.array(node_vectors['const?'])
-				elif operator[:2] == "x_":
-					#print("x_ operator:",operator)
-					vectorised_trav[i] = np.array(node_vectors[operator])
-					#print("returned vector:",vectorised_trav[i])
+				# elif operator[:2] == "x_":
+				# 	vectorised_trav[i] = np.array(node_vectors[operator])
 				else:
 					vectorised_trav[i] = np.array(node_vectors[operator])
 
@@ -107,13 +101,15 @@ class ExpressionMultiTree:
 		init_tree initialises a tree as a cascading chain of node objects that each contain children. These trees form the expression "+ 0" and
 		serve as the starting point for DQN
 		'''
-		root_node = node_impl.Plus() # plus node
-		zero_node = node_impl.Constant()
+		root_node = copy.deepcopy(node_impl.Plus()) # plus node
+		zero_node = copy.deepcopy(node_impl.Constant())
 		zero_node.set_value(0.0)
 
 		# insert the zero node as a child for the plus node at index 0. 
 		# By convention, index 0 is the left branch when generating a pre-order traversal
-		root_node.insert_child(zero_node, 0) 
+		root_node.insert_child(zero_node, 0)
+
+		root_node.insert_child(copy.deepcopy(node_impl.Plus()), 1) 
 
 		return root_node
 
@@ -133,12 +129,14 @@ class ExpressionMultiTree:
 		'''
 		Generates a tree's preorder traversal starting from its root node. By convention, the child at index 0 is considered to be the left child
 		'''
-		preorder_trav.append(tree_root_node.symb)
-		for child in tree_root_node._children:
-			if child.arity > 0:
-				preorder_trav.append(self.get_tree_preorder_travs(child, preorder_trav))
-			else:
-				preorder_trav.append(child.symb)
+		if len(tree_root_node._children) is 0:
+			preorder_trav.append(tree_root_node.symb)
+		if len(tree_root_node._children) > 0:
+			for child in tree_root_node._children:
+				if child.arity > 0:
+					preorder_trav.append(self.get_tree_preorder_travs(child, preorder_trav))
+				else:
+					preorder_trav.append(child.symb)
 
 
 	def update_tree(self, tree_root_node, action):
@@ -146,7 +144,9 @@ class ExpressionMultiTree:
 		update_tree adds a new node (action) to a currently existing tree as per the pre-order traversal order
 		'''
 		# a boolean var to check if a child was added. If after running this function, no child was added then the tree is saturated and the episode needs to end
-		child_added = False 
+		child_added = False
+		if (tree_root_node.arity == 0):
+			return child_added
 
 		if (tree_root_node.arity > 0) and (len(tree_root_node._children) == 0):
 			# if the current node has an arity > 0 and has no children then insert a child node at index 0 (left side)
@@ -172,5 +172,4 @@ class ExpressionMultiTree:
 			# if the current node already has its max possible children then repeat for both children
 			for child in tree_root_node._children:
 				child_added = self.update_tree(child, action)
-
 		return child_added

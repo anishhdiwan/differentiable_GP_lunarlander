@@ -227,6 +227,7 @@ class Exp(Node):
 
   def get_output_pt(self, X):
     c_outs = self._get_child_outputs_pt(X)
+    print("")
     # protected_log = torch.log(torch.abs(c_outs[0]) + 1e-9)
     # return protected_log
 
