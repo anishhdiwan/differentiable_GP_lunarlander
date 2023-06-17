@@ -3,7 +3,7 @@ sys.path.append('../')
 from genepro.node import *
 from genepro import node_impl
 from genepro.multitree import Multitree
-from symbolic_dqn.actions import node_vectors, node_instances, add_feature_nodes, node_vector_dim
+#from symbolic_dqn.actions import node_vectors, node_instances, add_feature_nodes, node_vector_dim
 import copy
 
 class ExpressionMultiTree:
@@ -44,7 +44,6 @@ class ExpressionMultiTree:
 	def update(self, actions, node_instances):
 		# Update multitree and the pre-order traversal with the performed actions (addition of an operator to each individual tree)
 		assert len(actions) == self.multitree.n_trees, "The number of actions must be the same as the number of trees in the multitree"
-		print("node instances",node_instances)
 		for i in range(len(actions)):
 			if not self.tree_full[i]:
 				action = actions[i]
@@ -63,7 +62,7 @@ class ExpressionMultiTree:
 		output = self.multitree.get_output_pt(main_env_state)
 		return output
 
-	def vectorise_preorder_trav(self):
+	def vectorise_preorder_trav(self, node_vectors):
 		# Turn the preorder traversal of the tree (list of nodes that are operator tokens) into a vector representation
 		vectorised_multitree_preorder_trav = []
 		#print("multitreee traversal",self.multitree_preorder_travs)

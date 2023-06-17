@@ -42,7 +42,7 @@ writer = SummaryWriter(log_dir=logdir)
 lander_env = gym.make("LunarLander-v2", render_mode="rgb_array")
 
 node_vectors, node_instances, node_indices = add_feature_nodes(node_vectors, node_instances, node_indices, lander_env)
-print("node_instances in main",node_instances)
+#print("node_instances in main",node_instances)
 env = model.Environment(lander_env, node_vectors, node_instances, node_vector_dim)
 
 

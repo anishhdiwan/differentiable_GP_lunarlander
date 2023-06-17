@@ -30,6 +30,7 @@ class Environment:
 		# main_env is an instance of the OpenAI gym environment (in this case, lunar lander)
 		self.main_env = main_env
 		self.node_instances = node_instances
+		self.node_vectors = node_vectors
 			
 		# tree_full is a list containing the status of each tree in the multitree. If the tree is full (i.e no further nodes can be added) 
 		self.tree_full = [False for _ in range(main_env.action_space.n)]
@@ -49,14 +50,14 @@ class Environment:
 		self.main_env_state = torch.from_numpy(self.main_env.reset()[0].reshape((1,-1))).float() #create tensor from numpy array for evaluation
 		self.state = ExpressionMultiTree(self.tree_depth, n_trees, self.node_vector_dim)
 		# print(f"reset POT {self.state.multitree_preorder_travs}")
-		return self.state.vectorise_preorder_trav()
+		return self.state.vectorise_preorder_trav(self.node_vectors)
 
 	def step(self, actions):
 		# actions is a list of tree additions specified by the individual policies corresponding to each tree in the multitree
 		if not self.done:
 			if False in self.tree_full:
 				tree_full_before_update = self.tree_full
-				print("node instances in env class step function",self.node_instances)
+				#print("node instances in env class step function",self.node_instances)
 				self.tree_full = self.state.update(actions, self.node_instances)
 
 				rewards = np.array([0,0,0,0])
@@ -82,7 +83,7 @@ class Environment:
 				if not False in self.tree_full:
 					self.done = True
 
-				return self.state.vectorise_preorder_trav(), rewards, self.done, tree_full_before_update
+				return self.state.vectorise_preorder_trav(self.node_vectors), rewards, self.done, tree_full_before_update
 			
 			else:
 				self.done = True
