@@ -7,8 +7,8 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 
-from expression_tree import *
-from actions import add_feature_nodes, node_indices
+from symbolic_dqn.expression_tree import *
+from symbolic_dqn.actions import add_feature_nodes, node_indices
 import copy
 import pickle #pickle for cloning environment
 
@@ -29,6 +29,7 @@ class Environment:
 		self.state = None 
 		# main_env is an instance of the OpenAI gym environment (in this case, lunar lander)
 		self.main_env = main_env
+		self.node_instances = node_instances
 			
 		# tree_full is a list containing the status of each tree in the multitree. If the tree is full (i.e no further nodes can be added) 
 		self.tree_full = [False for _ in range(main_env.action_space.n)]
@@ -55,10 +56,8 @@ class Environment:
 		if not self.done:
 			if False in self.tree_full:
 				tree_full_before_update = self.tree_full
-				self.tree_full = self.state.update(actions, node_instances)
-				# print(self.state.multitree_preorder_travs)
-				# print(self.state.multitree.children[0]._children)
-				# print(self.state.multitree.children[0]._children[1]._children) 
+				print("node instances in env class step function",self.node_instances)
+				self.tree_full = self.state.update(actions, self.node_instances)
 
 				rewards = np.array([0,0,0,0])
 

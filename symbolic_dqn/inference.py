@@ -5,8 +5,8 @@ from tqdm import tqdm
 import psutil
 import gymnasium as gym
 
-import model # Import the classes and functions defined in model.py
-from actions import node_vectors, node_instances, node_indices, node_vector_dim, add_feature_nodes
+from symbolic_dqn import model # Import the classes and functions defined in model.py
+from symbolic_dqn.actions import node_vectors, node_instances, node_indices, node_vector_dim, add_feature_nodes
 
 # Setting up a device
 print(f"Is GPU available: {torch.cuda.is_available()}")

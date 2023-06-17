@@ -96,7 +96,8 @@ def add_feature_nodes(node_vectors, node_instances, node_indices, main_env, temp
 		node_instances['x_' + str(i)] = node_impl.Feature(i)
 		# node_vectors['x_' + str(i)] = [random.random(), 0]
 		temp = template
-		temp[num_nodes + i] = 1
+		print("num nodes and i ",num_nodes+i)
+		temp[num_nodes + i] = 1 #TODO: find out why list assignment index is out of range
 		node_vectors['x_' + str(i)] = temp
 		node_indices['x_' + str(i)] = i + num_nodes
 

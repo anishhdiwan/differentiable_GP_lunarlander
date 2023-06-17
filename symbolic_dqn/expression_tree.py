@@ -3,7 +3,7 @@ sys.path.append('../')
 from genepro.node import *
 from genepro import node_impl
 from genepro.multitree import Multitree
-from actions import node_vectors, node_instances, add_feature_nodes, node_vector_dim
+from symbolic_dqn.actions import node_vectors, node_instances, add_feature_nodes, node_vector_dim
 import copy
 
 class ExpressionMultiTree:
@@ -44,10 +44,11 @@ class ExpressionMultiTree:
 	def update(self, actions, node_instances):
 		# Update multitree and the pre-order traversal with the performed actions (addition of an operator to each individual tree)
 		assert len(actions) == self.multitree.n_trees, "The number of actions must be the same as the number of trees in the multitree"
+		print("node instances",node_instances)
 		for i in range(len(actions)):
 			if not self.tree_full[i]:
 				action = actions[i]
-				action = copy.deepcopy(node_instances[action])
+				action = copy.deepcopy(node_instances[action]) #TODO: find out why node_instances are missing x_'s
 				child_added = self.update_tree(self.multitree.children[i], action)
 				if not child_added:
 					self.tree_full[i] = True
