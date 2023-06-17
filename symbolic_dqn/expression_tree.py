@@ -54,7 +54,8 @@ class ExpressionMultiTree:
 
 		
 		self.multitree_preorder_travs = self.get_multitree_preorder_travs(self.multitree)
-		return self.tree_full #TODO: find out why this is returning all True even when trees are not full
+
+		return self.tree_full
 
 	def evaluate(self, main_env_state):
 		# Evaluate the current multitree expression with the main_env's state to get action values for the main_env
@@ -129,8 +130,7 @@ class ExpressionMultiTree:
 		'''
 		Generates a tree's preorder traversal starting from its root node. By convention, the child at index 0 is considered to be the left child
 		'''
-		if len(tree_root_node._children) is 0:
-			preorder_trav.append(tree_root_node.symb)
+		preorder_trav.append(tree_root_node.symb)
 		if len(tree_root_node._children) > 0:
 			for child in tree_root_node._children:
 				if child.arity > 0:
@@ -144,7 +144,8 @@ class ExpressionMultiTree:
 		update_tree adds a new node (action) to a currently existing tree as per the pre-order traversal order
 		'''
 		# a boolean var to check if a child was added. If after running this function, no child was added then the tree is saturated and the episode needs to end
-		child_added = False
+		child_added = False 
+
 		if (tree_root_node.arity == 0):
 			return child_added
 
@@ -172,4 +173,5 @@ class ExpressionMultiTree:
 			# if the current node already has its max possible children then repeat for both children
 			for child in tree_root_node._children:
 				child_added = self.update_tree(child, action)
+
 		return child_added
