@@ -221,6 +221,48 @@ class Evolution:
     best = self.population[np.argmax([t.fitness for t in self.population])]
     self.best_of_gens.append(deepcopy(best))
 
+
+  def _perform_elite_generation(self):
+    """
+    Performs one generation, which consists of parent selection, offspring generation, and fitness evaluation
+    """
+    # select promising parents
+    sel_fun = self.selection["fun"]
+    parents = sel_fun(self.population, self.pop_size, **self.selection["kwargs"])
+    # generate offspring
+    offspring_population = Parallel(n_jobs=self.n_jobs)(delayed(generate_offspring)
+      (t, self.crossovers, self.mutations, self.coeff_opts, 
+      parents, self.internal_nodes, self.leaf_nodes,
+      constraints={"max_tree_size": self.max_tree_size}) 
+      for t in parents)
+
+    # evaluate each offspring and store its fitness 
+    fitnesses = Parallel(n_jobs=self.n_jobs)(delayed(self.fitness_function)(t) for t in offspring_population)
+    fitnesses = list(map(list, zip(*fitnesses)))
+
+    memories = fitnesses[1]
+    memory = memories[0]
+    for m in range(1,len(memories)):
+      memory += memories[m]
+
+    self.memory = memory + self.memory
+
+    fitnesses = fitnesses[0]
+
+    new_population = []
+    for i in range(self.pop_size):
+      offspring_population[i].fitness = fitnesses[i]
+      new_population.append(parents[i] if parents[i].fitness > fitnesses[i] else offspring_population[i])
+    self.population = new_population
+
+    # store cost
+    self.num_evals += self.pop_size
+
+    # update info
+    self.num_gens += 1
+    best = self.population[np.argmax([t.fitness for t in self.population])]
+    self.best_of_gens.append(deepcopy(best))
+
   def evolve(self):
     """
     Runs the evolution until a termination criterion is met;
@@ -238,6 +280,33 @@ class Evolution:
     while not self._must_terminate():
       # perform one generation
       self._perform_generation()
+      # log info
+      if self.verbose:
+        print("gen: {},\tbest of gen fitness: {:.3f},\tbest of gen size: {}".format(
+            self.num_gens, self.best_of_gens[-1].fitness, len(self.best_of_gens[-1])
+            ))
+        gen_fitness = []
+        for individual in self.population:
+          gen_fitness.append(individual.fitness)
+        self.results.append(gen_fitness)
+
+  def evolve_elite(self):
+    """
+    Runs the evolution until a termination criterion is met;
+    first, a random population is initialized, second the generational loop is started:
+    every generation, promising parents are selected, offspring are generated from those parents, 
+    and the offspring population is used to form the population for the next generation
+    """
+    # set the start time
+    self.start_time = time.time()
+    self.results = []
+
+    self._initialize_population()
+
+    # generational loop
+    while not self._must_terminate():
+      # perform one generation
+      self._perform_elite_generation()
       # log info
       if self.verbose:
         print("gen: {},\tbest of gen fitness: {:.3f},\tbest of gen size: {}".format(
