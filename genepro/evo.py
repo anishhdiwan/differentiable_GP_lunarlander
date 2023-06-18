@@ -130,6 +130,7 @@ class Evolution:
     self.num_evals = 0
     self.start_time, self.elapsed_time = 0, 0
     self.best_of_gens = list()
+    self.fitness_function = fitness_function
 
     self.memory = None
 
@@ -190,15 +191,18 @@ class Evolution:
     Performs one generation, which consists of parent selection, offspring generation, and fitness evaluation
     """
     # select promising parents
+    print("Selecting")
     sel_fun = self.selection["fun"]
     parents = sel_fun(self.population, self.pop_size, **self.selection["kwargs"])
     # generate offspring
+    print("Start creating offspring")
     offspring_population = Parallel(n_jobs=self.n_jobs)(delayed(generate_offspring)
       (t, self.crossovers, self.mutations, self.coeff_opts, 
       parents, self.internal_nodes, self.leaf_nodes,
       constraints={"max_tree_size": self.max_tree_size}) 
       for t in parents)
 
+    print("Start calculating fitnesses")
     # evaluate each offspring and store its fitness 
     fitnesses = Parallel(n_jobs=self.n_jobs)(delayed(self.fitness_function)(t) for t in offspring_population)
     fitnesses = list(map(list, zip(*fitnesses)))
