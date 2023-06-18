@@ -234,6 +234,7 @@ class Evolution:
     and the offspring population is used to form the population for the next generation
     """
     # set the start time
+    self.results = []
     self.start_time = time.time()
 
     self._initialize_population()
@@ -247,6 +248,10 @@ class Evolution:
         print("gen: {},\tbest of gen fitness: {:.3f},\tbest of gen size: {}".format(
             self.num_gens, self.best_of_gens[-1].fitness, len(self.best_of_gens[-1])
             ))
+        gen_fitness = []
+        for individual in self.population:
+          gen_fitness.append(individual.fitness)
+        self.results.append(gen_fitness)  
         
   def evolve_continue(self):
     while not self._must_terminate():
@@ -256,4 +261,8 @@ class Evolution:
       if self.verbose:
         print("gen: {},\tbest of gen fitness: {:.3f},\tbest of gen size: {}".format(
             self.num_gens, self.best_of_gens[-1].fitness, len(self.best_of_gens[-1])
-            ))        
+            ))   
+        gen_fitness = []
+        for individual in self.population:
+          gen_fitness.append(individual.fitness)
+        self.results.append(gen_fitness)     
